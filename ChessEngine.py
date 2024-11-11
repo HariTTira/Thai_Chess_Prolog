@@ -1,5 +1,4 @@
 from pyswip import Prolog
-from ChessMain import pawn_promotion_ui
 
 class GameState():
     def __init__(self, screen):
@@ -55,9 +54,9 @@ class GameState():
                 if piece[1] == "p":  # Pawn
                     color = "white" if piece[0] == 'w' else "black"
                     promotion_check = list(self.prolog.query(f"can_promote({piece[1]}, {color}, {endRow}, {endCol})"))
-                    print("promotion_check: " ,promotion_check)
+                    print("promotion_check: " + str(promotion_check))
                     if promotion_check:
-                        promoted_piece = pawn_promotion_ui(self.screen, color)
+                        promoted_piece = f"{color[0]}L"  # "wL" for white, "bL" for black
                         self.board[endRow][endCol] = promoted_piece
                         self.prolog.retract(f"piece({piece}, {endRow}, {endCol})")
                         self.prolog.assertz(f"piece({promoted_piece}, {endRow}, {endCol})") 

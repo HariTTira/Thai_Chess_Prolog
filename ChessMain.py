@@ -3,14 +3,14 @@ import ChessEngine
 # from pyswip import Prolog
 
 
-WIDTH = HEIGHT = 512
+WIDTH = HEIGHT = 800
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 TOP_MARGIN = 50
 def loadImages():
-    pieces = ['wp', 'bp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'bR', 'bN', 'bB', 'bQ', 'bK']
+    pieces = ['wp', 'bp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL']
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("Images/"+ piece +".png"),(SQ_SIZE, SQ_SIZE))
 
@@ -59,7 +59,8 @@ def main():
                         playerClicks = [playerClicks[1]]
                         sqSelected = playerClicks[0]
                     else:
-                        animateMove(move, screen, gs.board, clock)
+                        if gs.board[row][col] != "--":
+                            animateMove(move, screen, gs.board, clock)
                         sqSelected = ()
                         playerClicks = []
 
@@ -82,37 +83,6 @@ def whoseMove(gs):
         return "White"
     else:
         return "Black"
-
-def pawn_promotion_ui(screen, color):
-    screen.fill(p.Color("black"))  # Dim the screen
-
-    # Promotion choices
-    choices = ['Q', 'R', 'B', 'N']
-    text_font = p.font.SysFont(None, 36)
-    box_width = WIDTH // len(choices)
-
-    # Display the options
-    for i, choice in enumerate(choices):
-        label = f"{color}{choice}"
-        text = text_font.render(label, True, p.Color("white"))
-        x_position = i * box_width + box_width // 2
-        screen.blit(text, (x_position - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
-
-    p.display.flip()
-
-    selecting = True
-    while selecting:
-        for event in p.event.get():
-            if event.type == p.QUIT:
-                return None
-            if event.type == p.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                # Check which box was clicked
-                box_index = mouse_x // box_width
-                if 0 <= box_index < len(choices):
-                    selected_piece = choices[box_index]
-                    selecting = False
-                    return color[0] + selected_piece
 
 def highlightsquare(screen, gs, sqSelected):
     if sqSelected != ():
@@ -227,25 +197,20 @@ def highlightsquare(screen, gs, sqSelected):
                             s.fill(p.Color('yellow'))
                             screen.blit(s, (new_col * SQ_SIZE, new_row * SQ_SIZE + TOP_MARGIN))
 
-
-def drawGameState(screen, gs, sqSelected):
-    drawBoard(screen)
-    highlightsquare(screen, gs, sqSelected)
-    drawPieces(screen, gs.board)
-
-def drawBoard(screen):
-    colors = [p.Color("white"), p.Color("gray")]
-    for r in range(DIMENSION):
-        for c in range(DIMENSION):
-            color = colors[((r + c) % 2)]
-            p.draw.rect(screen, color, p.Rect(c * SQ_SIZE, TOP_MARGIN + r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
-def drawPieces(screen, board):
-    for r in range(DIMENSION):
-        for c in range(DIMENSION):
-            piece = board[r][c]
-            if piece != "--":
-                screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, TOP_MARGIN + r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            elif piece[1] == 'L':  # Bian (King)
+                # Define moves for the Bian piece: forward, and diagonals (both forward and backward)
+                khon_moves = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+                
+                for drow, dcol in khon_moves:
+                    new_row, new_col = row + drow, col + dcol
+                    if 0 <= new_row < 8 and 0 <= new_col < 8:
+                        if gs.board[new_row][new_col] != "--":
+                            if gs.board[new_row][new_col][0] != piece[0]:  # Capture move
+                                s.fill(p.Color('red'))  # Color for capture moves
+                                screen.blit(s, (new_col * SQ_SIZE, new_row * SQ_SIZE + TOP_MARGIN))
+                        else:
+                            s.fill(p.Color('yellow'))  # Color for valid moves
+                            screen.blit(s, (new_col * SQ_SIZE, new_row * SQ_SIZE + TOP_MARGIN))
 
 def drawCheckStatus(screen, gs):
     if gs.inCheck or gs.checkmate:
