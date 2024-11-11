@@ -43,7 +43,6 @@ class GameState():
         if self.myMove(piece):
             valid_move = list(self.prolog.query(f"move_valid({piece}, {startRow}, {startCol}, {endRow}, {endCol})"))
             print("is it valid: " + str(valid_move))
-            print("is it Yellow: " + self.board[endRow][endCol] == "grey")
             if valid_move:
                 # If move is valid, update the board
                 self.board[startRow][startCol] = "--"

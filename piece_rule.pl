@@ -436,14 +436,6 @@ valid_move(bL, X, Y, X2, Y2) :-
 
 move_valid(Piece, X1, Y1, X2, Y2) :- valid_move(Piece, X1, Y1, X2, Y2).
 
-make_move(Piece, X1, Y1, X2, Y2) :- 
-    valid_move(Piece, X1, Y1, X2, Y2),
-    retract(piece(Piece, X1, Y1)),
-    assertz(piece(Piece, X2, Y2)).
-
-move(Piece, X1, Y1, X2, Y2) :- 
-    make_move(Piece, X1, Y1, X2, Y2).
-
 promotion_row(white, 0).
 promotion_row(black, 7).
 

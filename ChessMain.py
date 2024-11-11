@@ -2,9 +2,6 @@ import pygame as p
 import ChessEngine
 # from pyswip import Prolog
 
-# prolog = Prolog()
-# prolog.consult("piece_rule.pl")
-
 
 WIDTH = HEIGHT = 512
 DIMENSION = 8
@@ -200,7 +197,6 @@ def highlightsquare(screen, gs, sqSelected):
                         else:
                             s.fill(p.Color('yellow'))  # Color for valid moves
                             screen.blit(s, (new_col * SQ_SIZE, new_row * SQ_SIZE + TOP_MARGIN))
-
 
             elif piece[1] == 'Q':  # Khon (King)
                 # Define moves for the Khon piece: forward, and diagonals (both forward and backward)
