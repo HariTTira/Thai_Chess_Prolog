@@ -65,6 +65,7 @@ valid_move(wp, X, Y, X2, Y2) :-
     ;   piece(bB, X2, Y2)  % Capturing black bishop
     ;   piece(bQ, X2, Y2)  % Capturing black queen
     ;   piece(bK, X2, Y2)  % Capturing black king
+    ;   piece(bL, X2, Y2)  % Capturing black king
     ),
     piece(wp, X, Y),  % White pawn is at (X, Y)
     retract(piece(_, X2, Y2)).  % Remove captured piece
@@ -85,13 +86,14 @@ valid_move(bp, X, Y, X2, Y2) :-
     ;   piece(wN, X2, Y2)  % Capturing white knight
     ;   piece(wB, X2, Y2)  % Capturing white bishop
     ;   piece(wQ, X2, Y2)  % Capturing white queen
+    ;   piece(wL, X2, Y2)  % Capturing white queen
     ;   piece(wK, X2, Y2)  % Capturing white king (if allowed)
     ),
     piece(bp, X, Y),  % Black pawn is at (X, Y)
     retract(piece(_, X2, Y2)).  % Remove the captured white piece
 
-opponent_piece(wR, Opponent) :- member(Opponent, [bp, bR, bN, bB, bQ, bK]).
-opponent_piece(bR, Opponent) :- member(Opponent, [wp, wR, wN, wB, wQ, wK]).
+opponent_piece(wR, Opponent) :- member(Opponent, [bp, bR, bN, bB, bQ, bK, bL]).
+opponent_piece(bR, Opponent) :- member(Opponent, [wp, wR, wN, wB, wQ, wK, wL]).
 
 % Rook move
 % White Rook movement
@@ -110,6 +112,8 @@ valid_move(wR, X, Y, X2, Y2) :-
         retract(piece(bB, X2, Y2))
     ;   piece(bQ, X2, Y2),
         retract(piece(bQ, X2, Y2))
+    ;   piece(bL, X2, Y2),
+        retract(piece(bL, X2, Y2))
     ;   piece(bK, X2, Y2),
         retract(piece(bK, X2, Y2))
     ).
@@ -129,6 +133,8 @@ valid_move(bR, X, Y, X2, Y2) :-
     ;   piece(wB, X2, Y2),
         retract(piece(wB, X2, Y2))
     ;   piece(wQ, X2, Y2),
+        retract(piece(wQ, X2, Y2))
+    ;   piece(wL, X2, Y2),
         retract(piece(wQ, X2, Y2))
     ;   piece(wK, X2, Y2),
         retract(piece(wK, X2, Y2))
@@ -221,6 +227,8 @@ valid_move(wB, X, Y, X2, Y2) :-
         retract(piece(bK, X2, Y2))
     ;   piece(bB, X2, Y2),                             % Capture black king
         retract(piece(bB, X2, Y2))
+    ;   piece(bL, X2, Y2),                             % Capture black king
+        retract(piece(bL, X2, Y2))
     ).
 
 % Khon move for black Khon
@@ -242,6 +250,8 @@ valid_move(bB, X, Y, X2, Y2) :-
         retract(piece(wK, X2, Y2))
     ;   piece(wB, X2, Y2),                             % Capture white king
         retract(piece(wB, X2, Y2))
+    ;   piece(wL, X2, Y2),                             % Capture white king
+        retract(piece(wL, X2, Y2))
     ).
 
 % Met move for white Met
@@ -262,6 +272,8 @@ valid_move(wQ, X, Y, X2, Y2) :-
         retract(piece(bK, X2, Y2))   % Capture the black king
     ;   piece(bB, X2, Y2),           % Destination contains a black king
         retract(piece(bB, X2, Y2))   % Capture the black king
+    ;   piece(bL, X2, Y2),           % Destination contains a black king
+        retract(piece(bL, X2, Y2))   % Capture the black king
     ).
 
 % Met move for black Met
@@ -282,6 +294,8 @@ valid_move(bQ, X, Y, X2, Y2) :-
         retract(piece(wK, X2, Y2))   % Capture the white king
     ;   piece(wB, X2, Y2),           % Destination contains a white king
         retract(piece(wB, X2, Y2))   % Capture the white king
+    ;   piece(wL, X2, Y2),           % Destination contains a white king
+        retract(piece(wL, X2, Y2))   % Capture the white king
     ).
 
 
@@ -310,6 +324,8 @@ valid_move(wN, X, Y, X2, Y2) :-
         retract(piece(bB, X2, Y2))  % capture the black bishop
     ;   piece(bK, X2, Y2),    % destination contains a black king
         retract(piece(bK, X2, Y2))  % capture the black king
+    ;   piece(bL, X2, Y2),    % destination contains a black king
+        retract(piece(bL, X2, Y2))  % capture the black king
     ).
 
 
@@ -337,6 +353,8 @@ valid_move(bN, X, Y, X2, Y2) :-
         retract(piece(wB, X2, Y2))  % capture the white bishop
     ;   piece(wK, X2, Y2),    % destination contains a white king
         retract(piece(wK, X2, Y2))  % capture the white king
+    ;   piece(wL, X2, Y2),    % destination contains a white king
+        retract(piece(wL, X2, Y2))  % capture the white king
     ).
 
 % White King movement (with capture ability)
@@ -364,6 +382,8 @@ valid_move(wK, X, Y, X2, Y2) :-
         retract(piece(bQ, X2, Y2))  % capture the black queen
     ;   piece(bK, X2, Y2),    % destination contains a black king
         retract(piece(bK, X2, Y2))  % capture the black king
+    ;   piece(bL, X2, Y2),    % destination contains a white king
+        retract(piece(bL, X2, Y2))  % capture the white king
     ).
 
 
@@ -392,6 +412,8 @@ valid_move(bK, X, Y, X2, Y2) :-
         retract(piece(wQ, X2, Y2))  % capture the white queen
     ;   piece(wK, X2, Y2),    % destination contains a white king
         retract(piece(wK, X2, Y2))  % capture the white king
+    ;   piece(wL, X2, Y2),    % destination contains a white king
+        retract(piece(wL, X2, Y2))  % capture the white king
     ).
 
 % Promoted Bia move for white Bia
@@ -412,6 +434,8 @@ valid_move(wL, X, Y, X2, Y2) :-
         retract(piece(bK, X2, Y2))   % Capture the black king
     ;   piece(bB, X2, Y2),           % Destination contains a black king
         retract(piece(bB, X2, Y2))   % Capture the black king
+    ;   piece(bL, X2, Y2),    % destination contains a white king
+        retract(piece(bL, X2, Y2))  % capture the white king
     ).
 
 % Promoted Bia move for black Bia
@@ -432,6 +456,8 @@ valid_move(bL, X, Y, X2, Y2) :-
         retract(piece(wK, X2, Y2))   % Capture the white king
     ;   piece(wB, X2, Y2),           % Destination contains a white king
         retract(piece(wB, X2, Y2))   % Capture the white king
+    ;   piece(wL, X2, Y2),    % destination contains a white king
+        retract(piece(wL, X2, Y2))  % capture the white king
     ).
 
 move_valid(Piece, X1, Y1, X2, Y2) :- valid_move(Piece, X1, Y1, X2, Y2).
