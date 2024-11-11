@@ -41,11 +41,15 @@ def main():
 
                 col = location[0]//SQ_SIZE
                 row = (location[1] - TOP_MARGIN) // SQ_SIZE
+                piece = gs.board[row][col]
+
                 if sqSelected == (row,col):
                     sqSelected = ()
                     playerClicks = []
                 elif len(playerClicks) == 0 and gs.board[row][col] == "--":
                     print("Empty square clicked, no piece to select")
+                elif len(playerClicks) == 0 and gs.myMove(piece) == False:
+                    print("Not your turn")
                 else:
                     sqSelected = (row, col)
                     playerClicks.append(sqSelected)
@@ -53,12 +57,12 @@ def main():
                 if len(playerClicks) == 2:
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     print(move.getChessNotation())
-                    if gs.makeMove(move):
-                        animateMove(move, screen, gs.board, clock)
+                    
                     if gs.makeMove(move) == "same_color":
                         playerClicks = [playerClicks[1]]
                         sqSelected = playerClicks[0]
                     else:
+                        animateMove(move, screen, gs.board, clock)
                         sqSelected = ()
                         playerClicks = []
 
