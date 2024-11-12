@@ -1,9 +1,10 @@
 :- dynamic piece/3.
 :- discontiguous valid_move/5.
 
-in_boundaries(Col,Row):-
-    between(0,7,Col),
-    between(0,7,Row).
+% Ensure X and Y are within the 8x8 board boundaries (0-7)
+in_boundaries(X, Y) :-
+    X >= 0, X =< 7,
+    Y >= 0, Y =< 7.
 
 piece(wp, 5, 0).
 piece(wp, 5, 1).
@@ -50,12 +51,14 @@ piece(bK, 0, 4).
 % Pawn move
 % White Pawn
 valid_move(wp, X, Y, X2, Y2) :- 
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (X2 is X - 1, Y2 = Y),
     piece(wp, X, Y),
     \+ piece(_, X2, Y2).
 
 
 valid_move(wp, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (   X2 is X - 1, Y2 is Y + 1
     ;   X2 is X - 1, Y2 is Y - 1
     ),
@@ -72,11 +75,13 @@ valid_move(wp, X, Y, X2, Y2) :-
 
 % Black Pawn
 valid_move(bp, X, Y, X2, Y2) :- 
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (X2 is X + 1, Y2 = Y),
     piece(bp, X, Y),
     \+ piece(_, X2, Y2).  
 
 valid_move(bp, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (   X2 is X + 1, Y2 is Y + 1  % Diagonal move down-left
     ;   X2 is X + 1, Y2 is Y - 1  % Diagonal move down-right
     ),
@@ -98,6 +103,7 @@ opponent_piece(bR, Opponent) :- member(Opponent, [wp, wR, wN, wB, wQ, wK, wL]).
 % Rook move
 % White Rook movement
 valid_move(wR, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (X2 = X; Y2 = Y),
     clear_path(wR, X, Y, X2, Y2),
     piece(wR, X, Y),
@@ -120,6 +126,7 @@ valid_move(wR, X, Y, X2, Y2) :-
 
 % Black Rook movement
 valid_move(bR, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     (X2 = X; Y2 = Y),
     clear_path(bR, X, Y, X2, Y2),
     piece(bR, X, Y),
@@ -210,6 +217,7 @@ move_horizontal_right(Piece, X, Y, Y2) :-
 
 % Khon move for white Khon
 valid_move(wB, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(wB, X, Y),
     (   abs(X2 - X) =:= 1, abs(Y2 - Y) =:= 1           % Diagonal move
     ;   X2 is X - 1, Y2 =:= Y                          % Move one square forward
@@ -233,6 +241,7 @@ valid_move(wB, X, Y, X2, Y2) :-
 
 % Khon move for black Khon
 valid_move(bB, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(bB, X, Y),
     (   abs(X2 - X) =:= 1, abs(Y2 - Y) =:= 1           % Diagonal move
     ;   X2 is X + 1, Y2 =:= Y                          % Move one square forward
@@ -256,6 +265,7 @@ valid_move(bB, X, Y, X2, Y2) :-
 
 % Met move for white Met
 valid_move(wQ, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(wQ, X, Y),
     abs(X2 - X) =:= 1,               % Ensure the move is exactly one square diagonally
     abs(Y2 - Y) =:= 1,
@@ -278,6 +288,7 @@ valid_move(wQ, X, Y, X2, Y2) :-
 
 % Met move for black Met
 valid_move(bQ, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(bQ, X, Y),
     abs(X2 - X) =:= 1,               % Ensure the move is exactly one square diagonally
     abs(Y2 - Y) =:= 1,
@@ -301,6 +312,7 @@ valid_move(bQ, X, Y, X2, Y2) :-
 
 % Knight move
 valid_move(wN, X, Y, X2, Y2) :- 
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(wN, X, Y),
     (   (X2 is X - 2, Y2 is Y - 1)
     ;   (X2 is X - 2, Y2 is Y + 1)
@@ -330,6 +342,7 @@ valid_move(wN, X, Y, X2, Y2) :-
 
 
 valid_move(bN, X, Y, X2, Y2) :- 
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(bN, X, Y),
     (   (X2 is X - 2, Y2 is Y - 1)
     ;   (X2 is X - 2, Y2 is Y + 1)
@@ -359,6 +372,7 @@ valid_move(bN, X, Y, X2, Y2) :-
 
 % White King movement (with capture ability)
 valid_move(wK, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(wK, X, Y),
     (   (X2 is X + 1, Y2 is Y)
     ;   (X2 is X - 1, Y2 is Y)
@@ -389,35 +403,23 @@ valid_move(wK, X, Y, X2, Y2) :-
 
 % Black King movement (with capture ability)
 valid_move(bK, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(bK, X, Y),
-    (   (X2 is X + 1, Y2 is Y)
-    ;   (X2 is X - 1, Y2 is Y)
-    ;   (X2 is X, Y2 is Y + 1)
-    ;   (X2 is X, Y2 is Y - 1)
-    ;   (X2 is X + 1, Y2 is Y + 1)
-    ;   (X2 is X + 1, Y2 is Y - 1)
-    ;   (X2 is X - 1, Y2 is Y + 1)
-    ;   (X2 is X - 1, Y2 is Y - 1)
-    ),
-    (   \+ piece(_, X2, Y2)  % destination is empty
-    ;   piece(wp, X2, Y2),    % destination contains a white pawn
-        retract(piece(wp, X2, Y2))  % capture the white pawn
-    ;   piece(wR, X2, Y2),    % destination contains a white rook
-        retract(piece(wR, X2, Y2))  % capture the white rook
-    ;   piece(wN, X2, Y2),    % destination contains a white knight
-        retract(piece(wN, X2, Y2))  % capture the white knight
-    ;   piece(wB, X2, Y2),    % destination contains a white bishop
-        retract(piece(wB, X2, Y2))  % capture the white bishop
-    ;   piece(wQ, X2, Y2),    % destination contains a white queen
-        retract(piece(wQ, X2, Y2))  % capture the white queen
-    ;   piece(wK, X2, Y2),    % destination contains a white king
-        retract(piece(wK, X2, Y2))  % capture the white king
-    ;   piece(wL, X2, Y2),    % destination contains a white king
-        retract(piece(wL, X2, Y2))  % capture the white king
+    abs(X2 - X) =< 1,
+    abs(Y2 - Y) =< 1,
+    (   \+ piece(_, X2, Y2)
+    ;   piece(wp, X2, Y2), retract(piece(wp, X2, Y2))
+    ;   piece(wR, X2, Y2), retract(piece(wR, X2, Y2))
+    ;   piece(wN, X2, Y2), retract(piece(wN, X2, Y2))
+    ;   piece(wB, X2, Y2), retract(piece(wB, X2, Y2))
+    ;   piece(wQ, X2, Y2), retract(piece(wQ, X2, Y2))
+    ;   piece(wL, X2, Y2), retract(piece(wL, X2, Y2))
+    ;   piece(wK, X2, Y2), retract(piece(wK, X2, Y2))
     ).
 
 % Promoted Bia move for white Bia
 valid_move(wL, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(wL, X, Y),
     abs(X2 - X) =:= 1,               % Ensure the move is exactly one square diagonally
     abs(Y2 - Y) =:= 1,
@@ -440,6 +442,7 @@ valid_move(wL, X, Y, X2, Y2) :-
 
 % Promoted Bia move for black Bia
 valid_move(bL, X, Y, X2, Y2) :-
+    in_boundaries(X, Y), in_boundaries(X2, Y2),
     piece(bL, X, Y),
     abs(X2 - X) =:= 1,               % Ensure the move is exactly one square diagonally
     abs(Y2 - Y) =:= 1,
@@ -459,6 +462,18 @@ valid_move(bL, X, Y, X2, Y2) :-
     ;   piece(wL, X2, Y2),    % destination contains a white king
         retract(piece(wL, X2, Y2))  % capture the white king
     ).
+
+all_possible_moves(Pieces, Moves) :-
+    findall([(StartRow, StartCol), (EndRow, EndCol)],
+        (member(Piece, Pieces),
+         between(0, 7, StartRow),
+         between(0, 7, StartCol),
+         piece(Piece, StartRow, StartCol),
+         between(0, 7, EndRow),
+         between(0, 7, EndCol),
+         valid_move(Piece, StartRow, StartCol, EndRow, EndCol),
+         \+ (StartRow = EndRow, StartCol = EndCol)),  % Exclude moves to same position
+        Moves).
 
 move_valid(Piece, X1, Y1, X2, Y2) :- valid_move(Piece, X1, Y1, X2, Y2).
 

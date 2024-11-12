@@ -3,7 +3,7 @@ import ChessEngine
 # from pyswip import Prolog
 
 
-WIDTH = HEIGHT = 800
+WIDTH = HEIGHT = 640
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
