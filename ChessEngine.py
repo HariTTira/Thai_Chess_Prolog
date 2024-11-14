@@ -75,6 +75,14 @@ class GameState():
                         self.whitekinglocation = (endRow, endCol)
                     elif piece == "bK":
                         self.blackkinglocation = (endRow, endCol)
+
+                    if self.isCheckmate():
+                        self.checkmate = True
+                        winner = "Black" if self.whiteToMove else "White"
+                        print(f"Checkmate! {winner} wins!")
+                    elif self.isStalemate():
+                        print("Stalemate! The game is a draw.")      
+
                     return True
                 else:
                     if self.whiteToMove:
@@ -98,7 +106,6 @@ class GameState():
                     if piece != "--":  # Only add actual pieces, not empty squares
                         # Assert new piece fact to Prolog
                         self.prolog.assertz(f"piece('{piece}',{row},{col})")
-            print("Update Done")
             
             return True
         except Exception as e:
@@ -113,6 +120,49 @@ class GameState():
             return True
         else:
             return False
+
+    def isCheckmate(self):
+        # First check if the current player's king is in check
+        if not self.inCheckStatus:
+            return False
+        
+        # Get all valid moves using the existing method
+        if self.whiteToMove:
+            valid_moves = self.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
+        else:
+            valid_moves = self.get_all_valid_moves(['bp','bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
+        
+        print("checking Checkmate")
+        for start_pos, end_pos in valid_moves:
+            move = Move(start_pos, end_pos, self.board)
+            if not self.wouldBeInCheck(move):
+                startRow, startCol = move.startRow, move.startCol
+                endRow, endCol = move.endRow, move.endCol
+                print("startRow: ", startRow , "startCol:" ,startCol)
+                print("endRow: ", endRow , "endCol:" ,endCol)
+                return False  # Found at least one legal move
+        
+        return True
+
+    def isStalemate(self):
+        # First check that the king is NOT in check
+        if self.inCheckStatus:
+            return False
+        
+        # Get all valid moves using the existing method
+        if self.whiteToMove:
+            valid_moves = self.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
+        else:
+            valid_moves = self.get_all_valid_moves(['bp','bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
+
+        # Try each move to see if it's legal
+        for start_pos, end_pos in valid_moves:
+            move = Move(start_pos, end_pos, self.board)
+            if not self.wouldBeInCheck(move):
+                return False  # Found at least one legal move
+        
+        # If we get here, no legal moves were found
+        return True
 
     def wouldBeInCheck(self, move):
         """Simulates a move and checks if it would result in the current player's king being in check"""
@@ -199,12 +249,12 @@ class GameState():
     
     def squareUnderAttack(self,r,c):
         self.validMoves = self.getvalidMoves()
-        print("ALL VALID MOVE:" ,self.validMoves)
-        print("R: ", r, "C: ", c)
+        # print("ALL VALID MOVE:" ,self.validMoves)
+        # print("R: ", r, "C: ", c)
         for valid_move in self.validMoves:
             if valid_move[1] == (r, c):
-                print("valid move[1]" , valid_move[1])
-                print("R: ", r, "C: ", c)
+                # print("valid move[1]" , valid_move[1])
+                # print("R: ", r, "C: ", c)
                 return True
         return False
 
