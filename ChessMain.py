@@ -54,12 +54,12 @@ def main():
                 if len(playerClicks) == 2:
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     print(move.getChessNotation())
-                    
-                    if gs.makeMove(move) == "same_color":
+                    valid = gs.makeMove(move)
+                    if valid == "same_color":
                         playerClicks = [playerClicks[1]]
                         sqSelected = playerClicks[0]
                     else:
-                        if gs.board[row][col] != "--":
+                        if gs.board[row][col] != "--" and valid == True:
                             animateMove(move, screen, gs.board, clock)
                         sqSelected = ()
                         playerClicks = []

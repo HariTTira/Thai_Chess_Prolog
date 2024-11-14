@@ -364,13 +364,13 @@ valid_move(bL, X, Y, X2, Y2) :-
     abs(X2 - X) =:= 1,               % Ensure the move is exactly one square diagonally
     abs(Y2 - Y) =:= 1,
     (   \+ piece(_, X2, Y2)          % Destination is empty
-    ;   piece(bp, X2, Y2)            % Can capture black pawn
-    ;   piece(bR, X2, Y2)            % Can capture black rook
-    ;   piece(bN, X2, Y2)            % Can capture black knight
-    ;   piece(bB, X2, Y2)            % Can capture black bishop
-    ;   piece(bQ, X2, Y2)            % Can capture black queen
-    ;   piece(bK, X2, Y2)            % Can capture black king
-    ;   piece(bL, X2, Y2)            % Can capture black promoted pawn
+    ;   piece(wp, X2, Y2)            % Can capture black pawn
+    ;   piece(wR, X2, Y2)            % Can capture black rook
+    ;   piece(wN, X2, Y2)            % Can capture black knight
+    ;   piece(wB, X2, Y2)            % Can capture black bishop
+    ;   piece(wQ, X2, Y2)            % Can capture black queen
+    ;   piece(wK, X2, Y2)            % Can capture black king
+    ;   piece(wL, X2, Y2)            % Can capture black promoted pawn
     ).
 
 all_possible_moves(Pieces, Moves) :-
