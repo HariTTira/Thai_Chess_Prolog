@@ -1,6 +1,7 @@
 import pygame as p
 import ChessEngine
 # from pyswip import Prolog
+import AIchess
 
 
 WIDTH = HEIGHT = 640
@@ -25,47 +26,51 @@ def main():
     running = True
     sqSelected = ()
     playerClicks = [] #keep track plater clicks(two tuple)
+    playerOne = True
+    playerTwo = False
     while running:
+        humanturn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
-                running = False
+                running = False 
             elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()
+                if humanturn:
+                    location = p.mouse.get_pos()
 
-                if location[1] < TOP_MARGIN:
-                    print("Nothing Here")
-                    continue
+                    if location[1] < TOP_MARGIN:
+                        print("Nothing Here")
+                        continue
 
-                col = location[0]//SQ_SIZE
-                row = (location[1] - TOP_MARGIN) // SQ_SIZE
-                piece = gs.board[row][col]
+                    col = location[0]//SQ_SIZE
+                    row = (location[1] - TOP_MARGIN) // SQ_SIZE
+                    piece = gs.board[row][col]
 
-                if sqSelected == (row,col):
-                    sqSelected = ()
-                    playerClicks = []
-                elif len(playerClicks) == 0 and gs.board[row][col] == "--":
-                    print("Empty square clicked, no piece to select")
-                elif len(playerClicks) == 0 and gs.myMove(piece) == False:
-                    print("Not your turn")
-                else:
-                    sqSelected = (row, col)
-                    playerClicks.append(sqSelected)
-                    print(sqSelected)
-                if len(playerClicks) == 2:
-                    move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print(move.getChessNotation())
-                    valid = gs.makeMove(move)
-                    if valid == "same_color":
-                        playerClicks = [playerClicks[1]]
-                        sqSelected = playerClicks[0]
-                    else:
-                        if gs.board[row][col] != "--" and valid == True:
-                            animateMove(move, screen, gs.board, clock)
+                    if sqSelected == (row,col):
                         sqSelected = ()
                         playerClicks = []
+                    elif len(playerClicks) == 0 and gs.board[row][col] == "--":
+                        print("Empty square clicked, no piece to select")
+                    elif len(playerClicks) == 0 and gs.myMove(piece) == False:
+                        print("Not your turn")
+                    else:
+                        sqSelected = (row, col)
+                        playerClicks.append(sqSelected)
+                        print(sqSelected)
+                    if len(playerClicks) == 2:
+                        move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                        print(move.getChessNotation())
+                        valid = gs.makeMove(move)
+                        if valid == "same_color":
+                            playerClicks = [playerClicks[1]]
+                            sqSelected = playerClicks[0]
+                        else:
+                            if gs.board[row][col] != "--" and valid == True:
+                                animateMove(move, screen, gs.board, clock)
+                            sqSelected = ()
+                            playerClicks = []
 
-                    for i in range(8):
-                        print(gs.board[i])
+                        for i in range(8):
+                            print(gs.board[i])
 
         screen.fill(p.Color("white"))
 
@@ -73,6 +78,17 @@ def main():
         turn_text = font.render(f"{turn}'s Turn", True, p.Color("black"))
         text_rect = turn_text.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2))
         screen.blit(turn_text, text_rect)
+
+        if not humanturn and playerOne == True:
+            validmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
+            AImove = AIchess.findRandomMove(validmoves)
+            AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
+            gs.makeMove(AImakemove)
+        elif not humanturn and playerTwo == True:
+            validmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
+            AImove = AIchess.findRandomMove(validmoves)
+            AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
+            gs.makeMove(AImove)
 
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
