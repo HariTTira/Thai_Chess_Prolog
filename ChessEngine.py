@@ -5,6 +5,7 @@ class GameState():
         self.screen = screen  # Pass the screen object
         self.inCheckStatus = False
         self.checkmate = False
+        self.stalemate = False
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -38,12 +39,12 @@ class GameState():
         if first[0] == second[0]:
             return "same_color"
 
-        print("piece: " + piece)
-        print("startRow: " + str(startRow) + " startCol: " + str(startCol))
-        print("endRow: " + str(endRow) + " endCol: " + str(endCol))
+        # print("piece: " + piece)
+        # print("startRow: " + str(startRow) + " startCol: " + str(startCol))
+        # print("endRow: " + str(endRow) + " endCol: " + str(endCol))
         
-        move_found = False
         self.validMoves = self.getvalidMoves()
+        move_found = False
         for valid_move in self.validMoves:
             if valid_move[0] == (startRow, startCol) and valid_move[1] == (endRow, endCol):
                 move_found = True
@@ -51,45 +52,41 @@ class GameState():
 
         if self.myMove(piece):
             if move_found:
-                print("MOVE FOUND")
-                if not self.wouldBeInCheck(move):
-                    self.board[startRow][startCol] = "--"
-                    self.board[endRow][endCol] = piece
-                    self.prolog.retract(f"piece({piece}, {startRow}, {startCol})")
-                    self.prolog.assertz(f"piece({piece}, {endRow}, {endCol})")
-                    self.updateBoard()
-                    self.inCheckStatus = self.checkForCheck()
-                    self.moveLog.append(move)
-                    self.whiteToMove = not self.whiteToMove
+                # print("MOVE FOUND")
+                self.moveLog.append(move)
+                self.board[startRow][startCol] = "--"
+                self.board[endRow][endCol] = piece
+                self.prolog.retract(f"piece({piece}, {startRow}, {startCol})")
+                self.prolog.assertz(f"piece({piece}, {endRow}, {endCol})")
+                self.updateBoard()
+                # self.inCheckStatus = self.checkForCheck()
+                self.whiteToMove = not self.whiteToMove
 
-                    if piece[1] == "p":
-                        color = "white" if piece[0] == 'w' else "black"
-                        promotion_check = list(self.prolog.query(f"can_promote({piece[1]}, {color}, {endRow}, {endCol})"))
-                        if promotion_check:
-                            promoted_piece = f"{color[0]}L"
-                            self.board[endRow][endCol] = promoted_piece
-                            self.prolog.retract(f"piece({piece}, {endRow}, {endCol})")
-                            self.prolog.assertz(f"piece({promoted_piece}, {endRow}, {endCol})")
+                if piece[1] == "p":
+                    color = "white" if piece[0] == 'w' else "black"
+                    promotion_check = list(self.prolog.query(f"can_promote({piece[1]}, {color}, {endRow}, {endCol})"))
+                    if promotion_check:
+                        promoted_piece = f"{color[0]}L"
+                        self.board[endRow][endCol] = promoted_piece
+                        self.prolog.retract(f"piece({piece}, {endRow}, {endCol})")
+                        self.prolog.assertz(f"piece({promoted_piece}, {endRow}, {endCol})")
 
-                    if piece == "wK":
-                        self.whitekinglocation = (endRow, endCol)
-                    elif piece == "bK":
-                        self.blackkinglocation = (endRow, endCol)
 
-                    if self.isCheckmate():
-                        self.checkmate = True
-                        winner = "Black" if self.whiteToMove else "White"
-                        print(f"Checkmate! {winner} wins!")
-                    elif self.isStalemate():
-                        print("Stalemate! The game is a draw.")      
+                if piece == "wK":
+                    self.whitekinglocation = (endRow, endCol)
+                elif piece == "bK":
+                    self.blackkinglocation = (endRow, endCol)
+                    
+                self.inCheckStatus = self.checkForCheck()
+                if self.isCheckmate():
+                    self.checkmate = True
+                    winner = "Black" if self.whiteToMove else "White"
+                    print(f"Checkmate! {winner} wins!")
+                elif self.isStalemate():
+                    self.stalemate = True
+                    print("Stalemate! The game is a draw.")      
 
-                    return True
-                else:
-                    if self.whiteToMove:
-                        print("White king is in check!")
-                    else:
-                        print("Black king is in check!")
-                    return False  # Move would put king in check
+                return True
             else:
                 return False
         return False
@@ -112,6 +109,21 @@ class GameState():
             print(f"Error updating board state: {e}")
             return False
                 
+    def undoMove(self):
+        if len(self.moveLog) != 0:
+            move = self.moveLog.pop()
+            self.board[move.startRow][move.startCol] = move.pieceMoved
+            self.board[move.endRow][move.endCol] = move.pieceCaptured
+            # print("UNDO UPDATE")
+            self.updateBoard()
+            self.whiteToMove = not self.whiteToMove  # switch turns
+            if move.pieceMoved == "wK":
+                self.whiteKingLocation = (move.startRow, move.startCol)
+            elif move.pieceMoved == "bK":
+                self.blackKingLocation = (move.startRow, move.startCol)
+            self.checkmate = False
+            self.stalemate = False
+
     def myMove(self, piece):
         piece = piece[0]
         if self.whiteToMove == True and piece == "w":
@@ -132,14 +144,12 @@ class GameState():
         else:
             valid_moves = self.get_all_valid_moves(['bp','bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
         
-        print("checking Checkmate")
+        # print("checking Checkmate")
         for start_pos, end_pos in valid_moves:
             move = Move(start_pos, end_pos, self.board)
             if not self.wouldBeInCheck(move):
-                startRow, startCol = move.startRow, move.startCol
-                endRow, endCol = move.endRow, move.endCol
-                print("startRow: ", startRow , "startCol:" ,startCol)
-                print("endRow: ", endRow , "endCol:" ,endCol)
+                # print("startRow: ", startRow , "startCol:" ,startCol)
+                # print("endRow: ", endRow , "endCol:" ,endCol)
                 return False  # Found at least one legal move
         
         return True
@@ -168,43 +178,90 @@ class GameState():
         """Simulates a move and checks if it would result in the current player's king being in check"""
         # Make a copy of the current board state
         temp_board = [row[:] for row in self.board]
-
-        # Simulate the move
-        piece = move.pieceMoved
-        startRow, startCol = move.startRow, move.startCol
-        endRow, endCol = move.endRow, move.endCol
-
-        # Update temporary board
-        temp_board[startRow][startCol] = "--"
-        temp_board[endRow][endCol] = piece
-
-        # Get king's position after the move
-        if piece[1] == "K":
-            if piece[0] == "w":
-                king_row, king_col = endRow, endCol
-            else:
-                king_row, king_col = endRow, endCol
-        else:
-            if self.whiteToMove:
-                king_row, king_col = self.whitekinglocation
-            else:
-                king_row, king_col = self.blackkinglocation
-
-        # Save current board state
+        
+        # Save current state
         original_board = self.board
+        original_white_king = self.whitekinglocation
+        original_black_king = self.blackkinglocation
+        
+        # Simulate the move
+        temp_board[move.startRow][move.startCol] = "--"
+        temp_board[move.endRow][move.endCol] = move.pieceMoved
+        
+        # Update king position if king was moved
+        if move.pieceMoved == "wK":
+            king_pos = (move.endRow, move.endCol)
+        elif move.pieceMoved == "bK":
+            king_pos = (move.endRow, move.endCol)
+        else:
+            king_pos = self.whitekinglocation if self.whiteToMove else self.blackkinglocation
+        
+        # Set temporary state
         self.board = temp_board
-
-        # Update Prolog knowledge base with temporary state
+        if self.whiteToMove:
+            self.whitekinglocation = king_pos if move.pieceMoved == "wK" else self.whitekinglocation
+        else:
+            self.blackkinglocation = king_pos if move.pieceMoved == "bK" else self.blackkinglocation
+            
+        # Update Prolog knowledge base
         self.updateBoard()
-
+        
+        # Get opponent's possible moves
+        opponent_pieces = ['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'] if self.whiteToMove else ['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL']
+        opponent_moves = self.get_all_valid_moves(opponent_pieces)
+        
         # Check if king would be under attack
-        would_be_in_check = self.squareUnderAttack(king_row, king_col)
-
-        # Restore original board state
+        king_row, king_col = king_pos
+        in_check = False
+        for start, end in opponent_moves:
+            if end == (king_row, king_col):
+                in_check = True
+                break
+                
+        # Restore original state
         self.board = original_board
+        self.whitekinglocation = original_white_king
+        self.blackkinglocation = original_black_king
         self.updateBoard()
+        
+        return in_check
+        
+    def getvalidMoves(self):
+        """Get all valid moves considering check rules"""
+        if self.whiteToMove:
+            pieces = ['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL']
+        else:
+            pieces = ['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL']
 
-        return would_be_in_check
+        # Get all possible moves for current player
+        moves = self.get_all_valid_moves(pieces)
+        valid_moves = []
+
+        # Test each move
+        for move_pair in moves:
+            start_pos, end_pos = move_pair
+            temp_move = Move(start_pos, end_pos, self.board)
+            
+            if not self.wouldBeInCheck(temp_move):
+                valid_moves.append(move_pair)
+
+        return valid_moves
+
+    def checkForCheck(self):
+        if self.whiteToMove:
+            return self.squareUnderAttack(self.blackkinglocation[0], self.blackkinglocation[1])
+        else:
+            return self.squareUnderAttack(self.whitekinglocation[0], self.whitekinglocation[1])
+    
+    def squareUnderAttack(self,r,c):
+        # print("ALL VALID MOVE:" ,self.validMoves)
+        # print("R: ", r, "C: ", c)
+        for valid_move in self.validMoves:
+            if valid_move[1] == (r, c):
+                # print("valid move[1]" , valid_move[1])
+                # print("R: ", r, "C: ", c)
+                return True
+        return False
 
     def get_all_valid_moves(self, pieces):
         # Query Prolog for all possible moves for the specified pieces
@@ -236,28 +293,7 @@ class GameState():
         
         # Convert back to list format and sort for consistency
         return sorted([list(move) for move in all_moves])
-        
-    def getvalidMoves(self):
-        all_moves = self.get_all_valid_moves(['wp', 'bp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
-        return all_moves
-
-    def checkForCheck(self):
-        if self.whiteToMove:
-            return self.squareUnderAttack(self.blackkinglocation[0], self.blackkinglocation[1])
-        else:
-            return self.squareUnderAttack(self.whitekinglocation[0], self.whitekinglocation[1])
     
-    def squareUnderAttack(self,r,c):
-        self.validMoves = self.getvalidMoves()
-        # print("ALL VALID MOVE:" ,self.validMoves)
-        # print("R: ", r, "C: ", c)
-        for valid_move in self.validMoves:
-            if valid_move[1] == (r, c):
-                # print("valid move[1]" , valid_move[1])
-                # print("R: ", r, "C: ", c)
-                return True
-        return False
-
 class Move():
     ranksToRows = {"1":7, "2":6, "3":5, "4": 4 , "5":3, "6":2, "7": 1, "8":0}
     rowsToRanks = {v:k for k, v in ranksToRows.items()}

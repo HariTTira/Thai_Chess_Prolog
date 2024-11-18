@@ -71,6 +71,10 @@ def main():
 
                         for i in range(8):
                             print(gs.board[i])
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undoMove()
+    
 
         screen.fill(p.Color("white"))
 
@@ -80,15 +84,24 @@ def main():
         screen.blit(turn_text, text_rect)
 
         if not humanturn and playerOne == True:
-            validmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
-            AImove = AIchess.findRandomMove(validmoves)
+            validmoves = gs.getvalidMoves()
+            # opponentmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
+            # print(validmoves)
+            AImove = AIchess.findBestMoveMinMax(gs, validmoves)
+            if AImove is None:
+                AImove = AImove = AIchess.findRandomMove(validmoves)
             AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
             gs.makeMove(AImakemove)
+            
         elif not humanturn and playerTwo == True:
-            validmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
-            AImove = AIchess.findRandomMove(validmoves)
+            validmoves = gs.getvalidMoves()
+            # opponentmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
+            # print(validmoves)
+            AImove = AIchess.findBestMoveMinMax(gs,validmoves)
+            if AImove is None:
+                AImove = AImove = AIchess.findRandomMove(validmoves)
             AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
-            gs.makeMove(AImove)
+            gs.makeMove(AImakemove)
 
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
