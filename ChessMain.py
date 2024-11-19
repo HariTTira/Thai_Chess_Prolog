@@ -28,7 +28,16 @@ def main():
     playerClicks = [] #keep track plater clicks(two tuple)
     playerOne = True
     playerTwo = False
+    game_ended = False
+
     while running:
+        if gs.checkmate or gs.stalemate:
+            if not game_ended:
+                drawGameState(screen, gs, sqSelected)
+                running = drawResultPage(screen, gs, clock)
+                game_ended = True
+                continue
+
         humanturn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
@@ -77,35 +86,47 @@ def main():
     
 
         screen.fill(p.Color("white"))
+        if not game_ended:
+            turn = whoseMove(gs)
+            turn_text = font.render(f"{turn}'s Turn", True, p.Color("black"))
+            text_rect = turn_text.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2))
+            screen.blit(turn_text, text_rect)
 
-        turn = whoseMove(gs)
-        turn_text = font.render(f"{turn}'s Turn", True, p.Color("black"))
-        text_rect = turn_text.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2))
-        screen.blit(turn_text, text_rect)
+            if not humanturn and playerOne == True:
+                validmoves = gs.getvalidMoves()
+                # opponentmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
+                # print(validmoves)
+                valid = []
+                for move in validmoves:
+                    checkmove = ChessEngine.Move(move[0], move[1], gs.board)
+                    if not gs.wouldBeInCheck(checkmove):
+                        valid.append(move)
 
-        if not humanturn and playerOne == True:
-            validmoves = gs.getvalidMoves()
-            # opponentmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
-            # print(validmoves)
-            AImove = AIchess.findBestMoveMinMax(gs, validmoves)
-            if AImove is None:
-                AImove = AImove = AIchess.findRandomMove(validmoves)
-            AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
-            gs.makeMove(AImakemove)
-            
-        elif not humanturn and playerTwo == True:
-            validmoves = gs.getvalidMoves()
-            # opponentmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
-            # print(validmoves)
-            AImove = AIchess.findBestMoveMinMax(gs,validmoves)
-            if AImove is None:
-                AImove = AImove = AIchess.findRandomMove(validmoves)
-            AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
-            gs.makeMove(AImakemove)
+                AImove = AIchess.findBestMoveMinMax(gs, valid)
+                if AImove is None:
+                    AImove = AImove = AIchess.findRandomMove(valid)
+                AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
+                gs.makeMove(AImakemove)
+                
+            elif not humanturn and playerTwo == True:
+                validmoves = gs.getvalidMoves()
+                # opponentmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
+                # print(validmoves)
+                valid = []
+                for move in validmoves:
+                    checkmove = ChessEngine.Move(move[0], move[1], gs.board)
+                    if not gs.wouldBeInCheck(checkmove):
+                        valid.append(move)
 
-        drawGameState(screen, gs, sqSelected)
-        clock.tick(MAX_FPS)
-        p.display.flip()
+                AImove = AIchess.findBestMoveMinMax(gs,valid)
+                if AImove is None:
+                    AImove = AImove = AIchess.findRandomMove(valid)
+                AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
+                gs.makeMove(AImakemove)
+
+            drawGameState(screen, gs, sqSelected)
+            clock.tick(MAX_FPS)
+            p.display.flip()
 
 def whoseMove(gs):
     if gs.whiteToMove:
@@ -307,7 +328,60 @@ def animateMove(move, screen, board, clock):
         p.display.flip()
         clock.tick(60)
 
+def drawResultPage(screen, gs, clock):
+    # Fill the screen with a semi-transparent overlay
+    overlay = p.Surface((WIDTH, HEIGHT + TOP_MARGIN))
+    overlay.set_alpha(128)
+    overlay.fill(p.Color("black"))
+    screen.blit(overlay, (0, 0))
     
+    # Set up fonts
+    large_font = p.font.SysFont(None, 74)
+    medium_font = p.font.SysFont(None, 36)
+    
+    # Determine the game result
+    if gs.checkmate:
+        winner = "Black" if gs.whiteToMove else "White"
+        title_text = f"{winner} Wins!"
+        result_text = "Checkmate"
+    else:
+        title_text = "Draw!"
+        result_text = "Stalemate"
+    
+    # Render the title text
+    title_surface = large_font.render(title_text, True, p.Color("white"))
+    title_rect = title_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 - 50))
+    
+    # Render the result text
+    result_surface = medium_font.render(result_text, True, p.Color("white"))
+    result_rect = result_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 20))
+    
+    # Render "Press any key to exit" text
+    exit_surface = medium_font.render("Press any key to exit", True, p.Color("white"))
+    exit_rect = exit_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 80))
+    
+    # Draw all text elements
+    screen.blit(title_surface, title_rect)
+    screen.blit(result_surface, result_rect)
+    screen.blit(exit_surface, exit_rect)
+    
+    # Update the display
+    p.display.flip()
+    
+    # Wait for keypress to exit
+    waiting = True
+    while waiting:
+        for event in p.event.get():
+            if event.type == p.QUIT:
+                return False
+            if event.type == p.KEYDOWN:
+                return False
+            if event.type == p.MOUSEBUTTONDOWN:
+                return False
+        clock.tick(60)
+    
+    return True
+
 
 if __name__ == "__main__":
     main()
