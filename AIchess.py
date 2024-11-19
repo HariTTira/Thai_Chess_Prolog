@@ -5,7 +5,7 @@ import random
 CHECKMATE = 1000
 STATLEMENT = 0
 DEPTH = 1
-pieceScore = {"K": 0, "Q": 3, "R": 5, "B": 4, "N": 3, "p": 1}
+pieceScore = {"K": 0, "Q": 3, "R": 5, "B": 4, "N": 3, "p": 1, "L": 3}
 
 
 def convert_move_to_prolog_format(move):
