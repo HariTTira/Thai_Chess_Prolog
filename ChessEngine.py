@@ -79,10 +79,15 @@ class GameState():
                     
                 self.inCheckStatus = self.checkForCheck()
                 if self.isCheckmate():
+                    print("Debug - Check status:", self.inCheckStatus)
+                    print("Debug - King position:", self.blackkinglocation if not self.whiteToMove else self.whitekinglocation)
+                    print("Debug - Valid moves:", self.getvalidMoves())
                     self.checkmate = True
                     winner = "Black" if self.whiteToMove else "White"
                     print(f"Checkmate! {winner} wins!")
                 elif self.isStalemate():
+                    print("Debug - Check status:", self.inCheckStatus)
+                    print("Debug - Valid moves:", self.getvalidMoves())
                     self.stalemate = True
                     print("Stalemate! The game is a draw.")      
 
@@ -248,7 +253,7 @@ class GameState():
         return valid_moves
 
     def checkForCheck(self):
-        if self.whiteToMove:
+        if not self.whiteToMove:
             return self.squareUnderAttack(self.blackkinglocation[0], self.blackkinglocation[1])
         else:
             return self.squareUnderAttack(self.whitekinglocation[0], self.whitekinglocation[1])
@@ -256,10 +261,12 @@ class GameState():
     def squareUnderAttack(self,r,c):
         # print("ALL VALID MOVE:" ,self.validMoves)
         # print("R: ", r, "C: ", c)
-        for valid_move in self.validMoves:
-            if valid_move[1] == (r, c):
-                # print("valid move[1]" , valid_move[1])
-                # print("R: ", r, "C: ", c)
+        self.whiteToMove = not self.whiteToMove  # Temporarily switch turns
+        opponent_moves = self.getvalidMoves()  # Get opponent's moves
+        self.whiteToMove = not self.whiteToMove
+
+        for move in opponent_moves:
+            if move[1] == (r, c):  # If any move can reach the king's square
                 return True
         return False
 
