@@ -357,7 +357,7 @@ def drawResultPage(screen, gs, clock):
     result_rect = result_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 20))
     
     # Render "Press any key to exit" text
-    exit_surface = medium_font.render("Press any key to exit", True, p.Color("white"))
+    exit_surface = medium_font.render("Press Enter to exit", True, p.Color("white"))
     exit_rect = exit_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 80))
     
     # Draw all text elements
@@ -375,10 +375,10 @@ def drawResultPage(screen, gs, clock):
             if event.type == p.QUIT:
                 return False
             if event.type == p.KEYDOWN:
-                return False
-            if event.type == p.MOUSEBUTTONDOWN:
-                return False
+                if event.key == p.K_RETURN:
+                    return False
         clock.tick(60)
+
     
     return True
 
