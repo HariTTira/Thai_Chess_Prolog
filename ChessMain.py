@@ -28,7 +28,16 @@ def main():
     playerClicks = [] #keep track plater clicks(two tuple)
     playerOne = True
     playerTwo = False
+    game_ended = False
+
     while running:
+        if gs.checkmate or gs.stalemate:
+            if not game_ended:
+                drawGameState(screen, gs, sqSelected)
+                running = drawResultPage(screen, gs, clock)
+                game_ended = True
+                continue
+
         humanturn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
@@ -77,11 +86,11 @@ def main():
     
 
         screen.fill(p.Color("white"))
-
-        turn = whoseMove(gs)
-        turn_text = font.render(f"{turn}'s Turn", True, p.Color("black"))
-        text_rect = turn_text.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2))
-        screen.blit(turn_text, text_rect)
+        if not game_ended:
+            turn = whoseMove(gs)
+            turn_text = font.render(f"{turn}'s Turn", True, p.Color("black"))
+            text_rect = turn_text.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2))
+            screen.blit(turn_text, text_rect)
 
         if not humanturn and playerOne == True:
             validmoves = gs.getvalidMoves()
@@ -100,9 +109,9 @@ def main():
             AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
             gs.makeMove(AImakemove)
 
-        drawGameState(screen, gs, sqSelected)
-        clock.tick(MAX_FPS)
-        p.display.flip()
+            drawGameState(screen, gs, sqSelected)
+            clock.tick(MAX_FPS)
+            p.display.flip()
 
 def whoseMove(gs):
     if gs.whiteToMove:
@@ -304,7 +313,60 @@ def animateMove(move, screen, board, clock):
         p.display.flip()
         clock.tick(60)
 
+def drawResultPage(screen, gs, clock):
+    # Fill the screen with a semi-transparent overlay
+    overlay = p.Surface((WIDTH, HEIGHT + TOP_MARGIN))
+    overlay.set_alpha(128)
+    overlay.fill(p.Color("black"))
+    screen.blit(overlay, (0, 0))
     
+    # Set up fonts
+    large_font = p.font.SysFont(None, 74)
+    medium_font = p.font.SysFont(None, 36)
+    
+    # Determine the game result
+    if gs.checkmate:
+        winner = "Black" if gs.whiteToMove else "White"
+        title_text = f"{winner} Wins!"
+        result_text = "Checkmate"
+    else:
+        title_text = "Draw!"
+        result_text = "Stalemate"
+    
+    # Render the title text
+    title_surface = large_font.render(title_text, True, p.Color("white"))
+    title_rect = title_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 - 50))
+    
+    # Render the result text
+    result_surface = medium_font.render(result_text, True, p.Color("white"))
+    result_rect = result_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 20))
+    
+    # Render "Press any key to exit" text
+    exit_surface = medium_font.render("Press Enter to exit", True, p.Color("white"))
+    exit_rect = exit_surface.get_rect(center=(WIDTH // 2, (HEIGHT + TOP_MARGIN) // 2 + 80))
+    
+    # Draw all text elements
+    screen.blit(title_surface, title_rect)
+    screen.blit(result_surface, result_rect)
+    screen.blit(exit_surface, exit_rect)
+    
+    # Update the display
+    p.display.flip()
+    
+    # Wait for keypress to exit
+    waiting = True
+    while waiting:
+        for event in p.event.get():
+            if event.type == p.QUIT:
+                return False
+            if event.type == p.KEYDOWN:
+                if event.key == p.K_RETURN:
+                    return False
+        clock.tick(60)
+
+    
+    return True
+
 
 if __name__ == "__main__":
     main()
