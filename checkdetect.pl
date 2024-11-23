@@ -1,4 +1,4 @@
-:- [piece_rule].  % Ensure the path is correct
+:- [piece_rule].
 
 :- dynamic piece/3.
 

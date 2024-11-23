@@ -85,9 +85,8 @@ def main():
 
         if not humanturn and playerOne == True:
             validmoves = gs.getvalidMoves()
-            # opponentmoves = gs.get_all_valid_moves(['wp', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wL'])
-            # print(validmoves)
             AImove = AIchess.findBestMoveMinMax(gs, validmoves)
+            print("AI MOVE:", AImove)
             if AImove is None:
                 AImove = AImove = AIchess.findRandomMove(validmoves)
             AImakemove = ChessEngine.Move(AImove[0], AImove[1], gs.board)
@@ -95,8 +94,6 @@ def main():
             
         elif not humanturn and playerTwo == True:
             validmoves = gs.getvalidMoves()
-            # opponentmoves = gs.get_all_valid_moves(['bp', 'bR', 'bN', 'bB', 'bQ', 'bK', 'bL'])
-            # print(validmoves)
             AImove = AIchess.findBestMoveMinMax(gs,validmoves)
             if AImove is None:
                 AImove = AImove = AIchess.findRandomMove(validmoves)

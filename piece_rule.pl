@@ -385,6 +385,41 @@ all_possible_moves(Pieces, Moves) :-
          \+ (StartRow = EndRow, StartCol = EndCol)),  % Exclude moves to same position
         Moves).
 
+% Find all possible moves for white pieces
+all_possible_moves_white(white, Pieces, Moves) :-
+    findall([(StartRow, StartCol), (EndRow, EndCol)],
+        (member(Piece, Pieces),
+         is_white_piece(Piece),
+         between(0, 7, StartRow),
+         between(0, 7, StartCol),
+         piece(Piece, StartRow, StartCol),
+         between(0, 7, EndRow),
+         between(0, 7, EndCol),
+         valid_move(Piece, StartRow, StartCol, EndRow, EndCol),
+         \+ (StartRow = EndRow, StartCol = EndCol)), % Exclude moves to same position
+        Moves).
+
+all_possible_moves_black(black, Pieces, Moves) :-
+    findall([(StartRow, StartCol), (EndRow, EndCol)],
+        (member(Piece, Pieces),
+         is_black_piece(Piece), 
+         between(0, 7, StartRow),
+         between(0, 7, StartCol),
+         piece(Piece, StartRow, StartCol),
+         between(0, 7, EndRow),
+         between(0, 7, EndCol),
+         valid_move(Piece, StartRow, StartCol, EndRow, EndCol),
+         \+ (StartRow = EndRow, StartCol = EndCol)), % Exclude moves to same position
+        Moves).
+
+% Helper predicates to identify piece colors
+is_white_piece(Piece) :-
+    atom_chars(Piece, [w|_]).
+
+is_black_piece(Piece) :-
+    atom_chars(Piece, [b|_]).
+
+
 move_valid(Piece, X1, Y1, X2, Y2) :- valid_move(Piece, X1, Y1, X2, Y2).
 
 promotion_row(white, 0).
@@ -393,97 +428,3 @@ promotion_row(black, 7).
 can_promote(Piece, Color, Row, _) :-
     Piece = p,
     promotion_row(Color, Row).
-
-king_in_check(Color) :-
-    piece(King, KingRow, KingCol),
-    King = Color + "K",
-    piece(AttackingPiece, AttackRow, AttackCol),
-    \+ same_color(AttackingPiece, King),  % Piece must be of opposite color
-    valid_move(AttackingPiece, AttackRow, AttackCol, KingRow, KingCol).
-
-% Helper predicate to get piece color
-piece_color(Piece, Color) :-
-    atom_chars(Piece, [Color|_]).
-
-% Check if a square is under attack
-square_under_attack(Row, Col, DefendingColor) :-
-    piece(AttackingPiece, AttackRow, AttackCol),
-    piece_color(AttackingPiece, AttackColor),
-    AttackColor \= DefendingColor,
-    valid_move(AttackingPiece, AttackRow, AttackCol, Row, Col).
-
-% Check if a king is in check
-king_in_check(Color) :-
-    piece(King, KingRow, KingCol),
-    atom_chars(King, [Color, 'K']),  % Ensure this matches your king representation
-    square_under_attack(KingRow, KingCol, Color).
-
-% Simulate a move and track board state
-simulate_move(Piece, FromRow, FromCol, ToRow, ToCol, Result) :-
-    % Store current state
-    findall(piece(P, R, C), piece(P, R, C), CurrentState),
-    
-    % Make the move
-    retract(piece(Piece, FromRow, FromCol)),
-    (piece(CapturedPiece, ToRow, ToCol) -> 
-        retract(piece(CapturedPiece, ToRow, ToCol))
-    ;   true),
-    assertz(piece(Piece, ToRow, ToCol)),
-    
-    % Check the result
-    (call(Result) ->
-        ReturnValue = true
-    ;   ReturnValue = false),
-    
-    % Restore original state
-    retractall(piece(_, _, _)),
-    maplist(assertz, CurrentState),
-    
-    ReturnValue.
-
-% Check if a move would expose the king to check
-move_exposes_check(Piece, FromRow, FromCol, ToRow, ToCol) :-
-    piece_color(Piece, Color),
-    simulate_move(Piece, FromRow, FromCol, ToRow, ToCol, king_in_check(Color)).
-
-% Find all legal moves for a piece
-legal_move(Piece, FromRow, FromCol, ToRow, ToCol) :-
-    piece(Piece, FromRow, FromCol),
-    piece_color(Piece, _Color),
-    valid_move(Piece, FromRow, FromCol, ToRow, ToCol),
-    \+ move_exposes_check(Piece, FromRow, FromCol, ToRow, ToCol).
-
-% Get all legal moves for a color
-all_legal_moves(Color, Moves) :-
-    findall(
-        move(Piece, FromRow, FromCol, ToRow, ToCol),
-        (
-            piece(Piece, FromRow, FromCol),
-            piece_color(Piece, Color),
-            legal_move(Piece, FromRow, FromCol, ToRow, ToCol)
-        ),
-        Moves
-    ).
-
-% Check for checkmate
-is_checkmate(Color) :-
-    king_in_check(Color),
-    all_legal_moves(Color, []).  % No legal moves available
-
-% Check for stalemate
-is_stalemate(Color) :-
-    \+ king_in_check(Color),
-    all_legal_moves(Color, []).  % No legal moves available
-
-% Find moves that escape check
-check_escape_moves(Color, Moves) :-
-    findall(
-        move(Piece, FromRow, FromCol, ToRow, ToCol),
-        (
-            piece(Piece, FromRow, FromCol),
-            piece_color(Piece, Color),
-            legal_move(Piece, FromRow, FromCol, ToRow, ToCol),
-            \+ simulate_move(Piece, FromRow, FromCol, ToRow, ToCol, king_in_check(Color))
-        ),
-        Moves
-    ).
